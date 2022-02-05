@@ -1,0 +1,232 @@
+% !TEX root = ../../main.tex
+
+\system{} supports two distinct group mechanisms:
+\begin{inparablank}
+\item
+  the peer group, an SI zone at the edge, and
+\item
+  the collaboration group, nodes that update the same data.
+\end{inparablank}
+Peer groups are disjoint, whereas collaboration groups may overlap.
+All nodes in a peer group are in the same collaboration group.
+
+\section{Peer groups}
+\label{sec:peer-groups}
+
+A peer group is a set of nodes with high-availability, low-latency
+connection to one another.
+
+It makes sense to provide SI within the group.
+This enhances the user experience, and simplifies metadata management.
+A peer group creates opportunities to improve performance, by pooling
+resources into a collaborative cache, and to decrease network load to
+the cloud by collecting the updates from many clients.
+
+It may also isolate itself from the cloud, keeping out distracting
+remote updates and improving security.
+
+In summary, a read by a member of the group is satisfied either from its
+local cache, or from that of a neighbor, or from the connected DC\@.
+Reads and writes satisfy the TCC+ and SI guarantees, as well as security
+guarantees described elsewhere.
+
+Conceptually, a peer group consists of four related components, with
+distinct roles:
+\begin{inparablank}
+\item
+  managing group membership,
+\item
+  sharing content within the group,
+\item
+  communicating with the outside,
+and \item
+  enforcing the SI order.
+\end{inparablank}
+They are described in further detail below.
+
+\subsection{Membership}
+\label{sec:groups-membership}
+
+Membership of a peer group is seeded and managed by a single node,
+called the group's \emph{parent}.
+The parent maintains a connection to each of the group member, stores
+the list of the members, and informs them of any membership change.
+The parent is fixed but arbitrary, possibly located in the DC or on a
+point-of-presence (PoP) server.
+A node may serve as a member and a parent at the same time.
+
+To join or leave a group, a node contacts the group's parent.
+The parent responds with the membership list, as well as the session
+security key (described shortly).
+When a node migrates between groups, it uses the migration protocol
+previously described (Section~\ref{sec:device-migration}); the new group
+must be causally compatible with the node's state.
+
+\subsection{Content Sharing}
+\label{sec:content-sharing}
+
+Using the membership list, the group members and their parent maintain
+point-to-point connections.
+Above these connections, they construct a collaborative cache using a simple peer-to-peer
+protocol.
+Each member publishes its current interest set to all its neighbors
+(other members and parent).
+This subscribes the member to receive all updates to its interest set.
+When a member updates an object in a neighbor's interest set, it pushes
+that update in a best-effort manner.
+Conversely, if a member observes that it is missing an update to its
+interest set (by examining the visibility log described below), it pulls
+the transaction from some neighbor.
+Objects evicted from a cache are unsubscribed to save resources.
+
+When a node first joins a group, or when it extends its interest set,
+some neighbor will push the objects it requires, as described above.
+
+The parent maintains an interest set that is the union of those of the
+group members.
+It subscribes for updates outside the peer group on behalf of its
+members, as detailed next.
+
+\subsection{Communicating Outside the Group}
+\label{sec:comm-outs-group}
+
+As illustrated in Figure~\ref{fig:topology}, a subtree communicates with
+another one via some common ancestor.
+For simplicity, the following description assumes this ancestor is
+its connected DC\@.%
+
+
+\footnote{
+
+So far, we glossed over the fact that a DC contains a number of
+concurrent shard servers. The group might communicate with any of
+these servers. }
+
+Let us call \emph{synchronization point} (sync point) a node within a
+group that communicates with the DC\@.
+In the common case, this is the parent, but any member may also
+unilaterally become a sync point (for instance before migrating a
+transaction to the DC, Section~\ref{sec:trans-migr}), thus avoiding any
+single point of failure.
+
+A sync point sends all the updates that the DC is missing, and
+symmetrically subscribes to updates to its interest set.
+Importantly, the sync point makes updates visible to the DC in the
+visibility order described in the next section.
+This ensures that different sync points send identical information.
+
+\subsection{Transaction Protocol for Peer Groups}
+\label{sec:group-txn}
+
+A peer group as a whole should behave like a single, sequential edge
+node, from the perspective of the rest of the system.
+To ensure sequential ordering, causality and progress within the group,
+\system{} relies on EPaxos \cite{syn:rep:1843} within the peer group.
+Compared to other consensus protocols, EPaxos improves availability and
+performance, by allowing any group member to become the leader for some
+particular transaction, and by minimizing synchronization between
+non-conflicting transactions.
+
+In addition to improving the user experience, consensus is essential to
+correct metadata management.
+
+Recall from Section~\ref{sec:comm-outs-group} that possibly multiple
+sync points send transactions to the DC\@.
+Without consensus, conflicting transactions would be sent in different orders,
+breaking causality and causing unsafe commit vectors.
+
+When a peer node commits a transaction, it submits it to EPaxos.
+EPaxos ensures consensus on the order in which versions become visible
+sequentially 
+according to SI, which we call \emph{visibility order.}
+Every peer maintains the list of visible transactions in a
+\emph{visibility log.}
+
+The transaction then executes in isolation against the local cache.
+Its dependencies are the union of the state vector, the node's previous
+transactions, and the transactions in the node's visibility log.
+
+The node assigns it a unique dot, executes and persists its updates in
+a local journal, and updates its local cache.
+
+Within a peer group, two different variants of commit exist.
+In the first, the node submits the transaction to EPaxos in the critical
+path of commit.
+This has the effect of ordering the commitment of conflicting
+transactions within the peer group, possibly leading to aborts;
+non-conflicting transactions commit in parallel.
+This variant maintains Parallel Snapshot Isolation (PSI) within a group
+\cite{rep:syn:1661}, ensuring that the group behaves as an SI zone.
+
+The second variant follows a similar approach to
+Section~\ref{sec:edge-trans-prot}.
+It assumes that transactions never conflict.
+The transaction commits locally as soon as it reaches the commit
+statement, and a new transaction can follow immediately.
+The transaction is then submitted to EPaxos in the background.
+
+Committed transactions become visible in the order
+assigned by EPaxos.
+A sync point sends visible transactions to the connected DC according
+to the visibility order, where they get assigned a commit timestamp.
+
+\section{Migration Between Peer Groups}
+\label{sec:migration-to-peer-group}
+
+Just as a node can migrate between DCs
+(Section~\ref{sec:device-migration}), it may migrate between peer
+groups.
+Similar consistency issues occur here.
+In this case, the base version of cached objects on the migrating node
+must be compatible with that of the new group.
+If the client is not missing any dependencies, or can retrieve them,
+then migration is seamless.
+
+However, if the client is missing dependencies and the new peer group is
+offline, migration cannot succeed.
+If the client waits, its pending commits remain logged until the
+communication problem is fixed and they can be merged into the DC\@.
+In the meantime, the client might start a session with the new group,
+but its pending updates in the old session become invisible.
+Alternatively, the client might attempt to  migrate again.
+
+\section{Collaboration groups}
+\label{sec:security-protocol}
+
+The mechanisms related to collaboration groups are trust management and
+versioning.
+
+Messages are protected using symmetric cryptography.
+The authentication service  provides a client with a session key
+per shared object, which she uses to decrypt data and sign her updates.
+This ensures that only legitimate clients can read an object.
+The key remains valid through disconnection and reconnection.
+
+To keep out untrusted or unwanted updates, we leverage the separation
+between state and visibility, previously discussed in
+Section~\ref{ch:protocol-design}.
+Recall that an update is visible only if it satisfies the TCC+
+invariants.
+In addition, it is visible only if it satisfies collaboration constraints.
+
+To manage trust, the security administrator sets ACL.
+Furthermore, a collaboration group can, for instance, restrict
+visibility to include only versions produced within the group.
+An update that does not satisfy the corresponding ACL or group
+constraints remains invisible, and transitively the updates that depend
+upon it.
+Thus, security policies and groups can evolve dynamically.
+Technically, this violates the monotonicity invariant, but in a very
+restricted manner.
+The store remains TCC+, but security and group constraints expose only a
+variable-size window thereof.
+
+The data model of \system{} together with \tccp is able to express 
+(and maintain) 
+several classes of applicative invariants.
+We illustrate this below using two examples, a control access system and a 
+collaborative social application.
+
+We consider a fail-stop distributed model of computation.
+Clients execute wait-free operations in \system{} whatever failures occur in the 
+system.

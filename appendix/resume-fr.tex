@@ -1,0 +1,101 @@
+% !TEX root = ../main.tex
+%
+\chapter{Résumé}
+\label{appendix:resume-fr}
+
+La collaboration à large échelle sur Internet est un domaine d'application 
+en pleine expansion,
+comme peuvent en témoigner les éditeurs de texte partagés tels que Google Docs
+ou Microsoft Office 365; 
+les systèmes de partage de fichiers comme Dropbox ou NextCloud.
+Certains appareils dotés de capacités de réalité augmentée prennent en charge des 
+jeux géolocalisés tels que Pokémon Go ou Harry Potter Unite,
+ou des applications collaboratives de modélisation et de conception d'objets 
+en 3D.
+
+Les systèmes existants sont basés sur des plateformes de stockage dans le nuage
+(\textit{Cloud}),
+rajoutant parfois une mise en cache ad hoc au niveau de l'application.
+Les violations de cohérence sont courantes dans ce type de configurations,
+ce qui perturbe les utilisateurs et rend la conception des applications plus 
+contraignante pour les développeurs.
+De plus, la prise en charge du fonctionnement en déconnecté est limitée,
+voire inexistante.
+En effet, les utilisateurs interagissent uniquement par le biais du 
+\textit{Cloud},
+même lorsqu'une communication directe serait possible entre eux,
+puisque ces systèmes sont dépourvus de fonctions de collaboration telles que 
+la gestion des groupes et des versions.
+
+Cette thèse explore ces problèmes en profondeur,
+en étudiant l'état de l'art lié aux systèmes de stockage 
+et services de synchronisation des données aux bords du réseau,
+et présente la base de données et l'intergiciel \textit{Colony},
+conçu pour répondre aux problématiques exposées.
+L'une des principales exigences est une approche \textit{Edge-First}
+qui stocke les données au plus près de l'utilisateur, 
+directement sur son dispositif,
+afin de fournir une disponibilité,
+une réponse rapide et transparente indépendamment de la connectivité du réseau
+et de l'emplacement géographique,
+et afin que les utilisateurs soient propriétaires de leurs propres données.
+Cependant, cela rend difficile la satisfaction des attentes en matière
+de cohérence et de fraîcheur des données.
+
+Pour répondre à ces défis,
+nous avons fait le choix d'adopter une approche hybride,
+en fournissant les plus fortes garanties de cohérence compatibles avec la 
+disponibilité (modèle \textit{TCC+} formalisé dans la contribution),
+tout en renforçant davantage (avec un modèle \textit{SI} présenté 
+dans l'état de l'art) ces garanties dans les zones les plus proches 
+et connectées (que nous appelons \textit{zones à cohérence forte}).
+De plus, nous utilisons le format de données \textit{CRDT} afin d'assurer 
+les propriétés de convergence sans avoir recours à un retour en arrière
+(\textit{Rollback}).
+Un défi connexe est le surcout des métadonnées liées à la gestion de la 
+concurrence (gros vecteurs d'horloges),
+que nous avons limité grâce à une topologie en arbre flexible,
+couplée aux zones à cohérence forte.
+
+Pour répondre aux exigences de la collaboration de groupe,
+notre solution versionne les données,
+permet à un groupe périphérique 
+(terminaux d'utilisateurs géographiquement proches et connectés)
+de synchroniser leurs versions sans dépendre du serveur central,
+tout en fournissant des garanties de sécurité collaborative.
+Notre conception fournit un accès uniforme aux données sur un spectre allant
+du nuage central (\textit{Cloud}) à la périphérie du réseau (\textit{Edge}).
+
+Enfin, cette thèse aborde un certain nombre de défis de conception et
+de mise en oeuvre du système,
+notamment le fonctionnement déconnecté,
+le consensus à ordre total à la périphérie du réseau
+et l'absence de points de défaillance uniques malgré la topologie en arbre.
+
+Les contributions de cette thèse peuvent être résumées comme suit:
+\begin{itemize}
+    \item Une architecture de base de données décentralisée,
+    conçue pour les applications collaboratives,
+    qui fournit un continuum allant du nuage central à la périphérie du réseau;
+    \item Un modèle de cohérence hybride,
+    basé sur des garanties causales et transactionnelles à large échelle,
+    renforcé à la cohérence d'ordre total dans les groupes de collaboration 
+    à proximité géographique au bord du réseau;
+    \item Une conception évolutive des métadonnées et de la topologie qui 
+    limite l'encombrement des métadonnées de cohérence requises,
+    tout en prenant en charge la déconnexion ou la migration transparente 
+    d'un noeud ou d'un groupe entier;
+    \item Une nouvelle approche du contrôle d'accès qui s'appuie sur 
+    le modèle de cohérence présenté;
+    \item La conception et l'implémentation efficaces de \textit{Colony},
+    et son évaluation expérimentale démontrant les avantages de notre approche.
+\end{itemize}
+
+Notre évaluation expérimentale montre que : 
+la mise en cache locale et de groupe améliore le débit de 1,4× et 1,6× 
+respectivement, 
+et le temps de réponse de 8× et 20×, 
+par rapport à une configuration classique de nuage ; 
+la performance en mode déconnecté reste la même qu'en mode connecté ; 
+la transition et la migration sont transparentes dans les deux modes de 
+connexion.

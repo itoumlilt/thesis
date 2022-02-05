@@ -1,0 +1,70 @@
+% !TEX root = ../../main.tex
+
+\begin{figure}
+    \begin{center}
+        \scalebox{0.7}{\input{./figures/fig-3dc-avg-latency-points-10-miss.pgf}}
+    \end{center}
+    \caption{Impact of a DC disconnection -- \emph{\small{Interval between the dashed lines indicates the disconnection period.}}}
+    \label{fig:plot-rt-offline-dc}
+\end{figure}
+    
+\begin{figure}
+    \begin{center}
+        \scalebox{0.7}{\input{./figures/fig-10grp-avg-latency-points-10-miss.pgf}}
+    \end{center}
+    \caption{Impact of a peer group disconnection -- \emph{\small{Interval between the dashed lines indicates the disconnection period.}}}
+    \label{fig:plot-rt-offline-pop}
+\end{figure}
+
+single group of users in a channel (has already fulfilled its cache)
+there are disconnected after some time
+workspace w. 36 users/ 36 clients
+the peer group contains 12 users; the rest is directly connected to the DC.
+in red, we measure the response time for these guys
+in blue, hit locally within the peer group
+in green, hit within the group but not local.
+
+We now evaluate how the response time varies under offline collaboration, or 
+when the sync point of a group fails to connect to a DC.
+%
+To this end, we use a single \system{}Chat workspace that contains 36 users.
+We pack 12 of these users in a peer group, whereas the others remain independent.
+All users start with a warmed-up cache.
+%
+Figure~\ref{fig:plot-rt-offline-dc} shows the response time perceived at each 
+user during the experiment.
+%
+Each dot in this figure corresponds to a transaction.
+
+In Figure~\ref{fig:plot-rt-offline-dc}, we observe that the response time for local 
+cache hits is near zero (in blue).
+Users that belong to the same peer group benefit from an average 2.3~ms response time 
+when data is fetched from the collaborative cache (in green).
+This raises to around 82~ms when the user needs to perform a remote read from 
+the DC (in red).
+
+Approximately 25~s after the start of the experiment, 
+the peer group goes offline, 
+and only collaborates on its shared interest set of objects.
+After this event, we observe that both the local and peer response time is unchanged:
+users in the group will not observe remote transactions due to the 
+disconnection, 
+but they continue their collaboration seamlessly.
+%
+Around 45~s after the beginning of the experiment, 
+the group is then reconnected to the DC.
+In Figure~\ref{fig:plot-rt-offline-dc}, 
+we can observe a slight increase of the response time at the reconnection, 
+yet it has minimal impact on performance.
+
+In Figure~\ref{fig:plot-rt-offline-pop}, 
+we consider the same workload but this time disconnect a user from its peer 
+group.
+The disconnection occurs after 25~s and the user reconnects 20~s later.
+In this figure, 
+we may observe that the response time of the \system{}Chat application is slightly impacted
+by the reconnection to the peer group.
+Upon reconnecting to the peer group, 
+the user notices a slight increase (below the millisecond) in its transactions.
+This variation comes from the fact that the channels were updated with the new 
+content published by the users in the peer group.

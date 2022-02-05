@@ -1,0 +1,67 @@
+% !TEX root = ../../main.tex
+
+% \chapter{Evaluation}
+% \label{ch:eval}
+
+This last part of the thesis presents an empirical evaluation of \system.
+We first demonstrate the implementation of a realistic collaborative application
+atop the middleware.
+With this as our main benchmark, we then evaluate the platform
+experimentally, comparing it to a classical client-server approach in
+the cloud, and to a simple caching approach.
+We consider both the online and the offline case.
+In the former, we evaluate transaction throughput vs.~response time, and
+behavior under load.
+In the offline case, we measure reconnection
+time, i.e., the time it takes for disconnected clients to be
+synchronized again.
+We also evaluate the performance benefit of peer groups.
+Finally, we study migration in mobile setups, measuring
+the time to return to normal performance.
+
+\begin{notice}
+    \system{}, the examples used in the evaluation, the scripts to launch
+    the evaluation and the scripts to parse the results are all available at the following
+    url: \url{https://gitlab.inria.fr/itoumlilt/colony}
+\end{notice}
+
+
+\chapter{\system{}Chat benchmark application}
+\label{ch:eval:benchmark-app}
+\input{benchmark}
+
+\chapter{Performance Evaluation}
+
+The performance evaluation will focus on situations where all clients are 
+continuously online, 
+as well as on situations where the network is interrupted. 
+For online situations, 
+we are especially interested in the time it takes to distribute and apply an 
+update to all other clients that are editing the same data. 
+For the offline situation, 
+we are especially interested in the time it takes for all clients to get back 
+in sync with each other after the network disruption, 
+and in the time it takes to restore normal interactive performance.
+
+\section{Setup}
+\label{sec:experimental-setup}
+\input{setup}
+
+\section{Response time and throughput}
+\label{sec:eval1}
+\input{eval1}
+
+\section{Response time of offline collaboration}
+\label{sec:eval2}
+\input{eval2}
+
+\section{Migration effect on response time}
+\label{sec:eval3}
+\input{eval3}
+
+\section{Performance compared to related work}
+\label{sec:eval4}
+\input{eval4}
+
+\chapter{Summary}
+\input{discussion}

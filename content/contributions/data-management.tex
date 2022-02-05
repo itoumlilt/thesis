@@ -1,0 +1,49 @@
+% !TEX root = ../../main.tex
+
+\system{} ensures convergence by using operation-based CRDTs, which
+merge concurrent conflicting operations deterministically
+\cite{syn:rep:sh143}.
+Similarly to recent CC designs \cite{db:syn:1808, rep:pro:sh182},
+\system{} separates (internal) state management from (external)
+visibility: the backend layer transmits and stores the state efficiently,
+without regard for correctness, whereas the visibility layer manages
+metadata and ensures that an application observes only those states that
+satisfy the TCC+ guarantees.
+
+\section{Versioning}
+\label{sec:versioning}
+
+\system{} stores an object persistently as a base version and
+a journal of updates since the base version.
+To materialize an arbitrary object version, the cache first reads the
+base version from the store, and applies the missing updates from the
+journal.
+Occasionally, the system advances the base version.
+
+A transaction reads from its snapshot, logs its updates to the
+journal, and materializes new versions in a private buffer.
+When the transaction commits, it updates the cache from the buffer.
+Both the updates recorded in the journal, and object versions that
+result from committed transaction $T$, are labeled with vector $T.C$
+and dot $T.D$.
+
+\section{Edge caching}
+\label{sec:edge-caching}
+
+An edge node cannot replicate the whole database, but can only cache
+some small fraction of it.
+An edge client may declare \emph{interest} in some object to add it to
+its node's cache.
+The connected DC regularly informs the client of updates to its interest
+set.
+
+At any point in time, the state vector of an edge node is the LUB of the
+state received from its connected DC (itself $\le$ the DC's current
+state vector) and the commit vectors of local transactions.
+Choosing a snapshot vector $\le$ the node's state vector ensures that
+every read could be satisfied either from the local cache or from the
+connected DC.
+It may happen that the client requires an object version that cannot be
+retrieved (in the cache, from the DC or from another node), in which case
+the transaction cannot proceed.
+This limitation of availability is inherent to the edge environment.

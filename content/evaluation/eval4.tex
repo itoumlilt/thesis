@@ -1,0 +1,109 @@
+% !TEX root = ../../main.tex
+
+\begin{figure}
+    \begin{center}
+        \scalebox{0.7}{\input{./figures/fig-perf-soa.pgf}}
+    \end{center}
+    \caption{Performance evaluation comparing throughput and latency of SwiftCloud, Automerge, Colony and Yjs. Using ColonyChat benchmark applications}
+    \label{fig:plot-performance-soa}
+\end{figure}
+
+In this experiment, we compare system performance of three approaches
+Yjs \cite{yjsyjsSh56:online}, 
+Automerge \cite{kleppmann2018automerge} and our system \system{} when scaling up,
+the setup for this experiment is exactly the same as in Section~\ref{sec:eval1}.
+
+Figure~\ref{fig:plot-performance-soa} reports throughput vs. response time.
+It uses a log-log scale;
+down and to the right is better.
+Load doubles from one point to the next, from 4 to 2024 clients.
+
+Automerge requires more bandwidth because it stores the whole history and uses
+fat metadata to identify transactions and clients.
+All three approaches uses state-based CRDTs, 
+\system{} performance is lower but remains very close to Yjs, 
+this is expected from the consensus at SI Zones,
+which we see as a trade-off to improve the average reconnection time and 
+metadata size as we will see in the next section.
+
+\subsection{Reconnection time}
+
+\begin{center}
+    \begin{table}[h]
+        \captionof{table}{Average resynchronization time (in seconds).\label{tab:reconnection-time}}
+    \begin{tabular}{ |m{6em}||m{5em}|m{5em}|m{5em}|m{5em}| } 
+        \hline
+        System & 4 clients & 8 clients & 16 clients & 32 clients\\ 
+        \hline
+        Automerge & 1.1s & 1.3s & 9.2s & 102s \\ 
+        \hline
+        Yjs & 4s & 8.3s & 14s & 73s \\ 
+        \hline
+        Colony & 0.9s & 1.1s & 4.2s & 8.3s \\ 
+        \hline
+    \end{tabular}
+\end{table}
+\end{center}
+
+We now present the performance analysis when the network between the clients 
+and the server is disrupted,
+running the same workload presented in Section~\ref{sec:eval1},
+with an increased disconnection rate (10\%).
+And as in Section~\ref{sec:eval3} we measured the average synchronization time
+when a client is connected back to its failure point, 
+or (in the Colony case) when it switches to another sync point.
+
+Table~\ref{tab:reconnection-time} shows the results of this experiment,
+thanks to its ability to synchronize from multiple points of failure,
+the forest topology
+and its migration feature,
+\system{} achieves an under 10s synchronization time while increasing the number
+of group clients.
+While in Automerge and Yjs, 
+that needs a single failure point to synchronize 
+a peer-to-peer group after failure,
+the synchronization time increases exponentially.
+
+\subsection{Metadata and implementation features comparison}
+
+\begin{center}
+    \begin{table}
+        \captionof{table}{Features and metadata comparison of similar systems.\label{tab:soa-compatison}}
+    \begin{tabular}{ |m{6em}||m{3em}|m{3em}|m{3em}|m{3em}|m{3em}||m{3em}|m{3em}|m{3em}| } 
+        \hline
+        System & Edge CRDTs + Offline & Edge Metadata & P2P Groups & Client Migration & Txn Movement & Brower Support & IoT Support & Web Server\\ 
+        \hline
+        WebCure & Yes & O(N) & No & No & No & No & No & Yes \\ 
+        \hline
+        SwiftCloud & Yes & O(1) & No & Yes & No & No & No & Yes \\ 
+        \hline
+        Legion & Yes & O(N) & Yes & No & No & Yes & No & Yes \\ 
+        \hline
+        Automerge & Yes & O(N) & Yes & No & No & Yes & Yes & Yes \\ 
+        \hline
+        Yjs & Yes & O(N) & Yes & No & No & Yes & Yes & Yes \\ 
+        \hline
+        Colony & Yes & O(1) & Yes & Yes & Yes & No & No & Yes \\ 
+        \hline
+    \end{tabular}
+\end{table}
+\end{center}
+
+This last section
+illustrates in Table~\ref{tab:soa-compatison} the set of features our approach
+offers while keeping low metadata overhead. 
+
+As presented in Section~\ref{sec:group-txn},
+our approach relies on EPaxos \cite{syn:rep:1843} within the peer group.
+Committed transactions become visible in the order
+assigned by EPaxos.
+In addition to improving the user experience, consensus is essential to
+correct metadata management. 
+Thanks to this choice, \system{} has a low metadata size compared to other 
+approaches, while maintaining a similar performance \ref{fig:plot-performance-soa},
+and many edge features.
+
+However, the current implementation of \system{} can only be used as a local web server,
+which restricts the type of devices it can be executed on (computers and laptops mostly),
+In-Browser (Service Workers) or IoT devices are future work development.
+

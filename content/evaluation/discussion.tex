@@ -1,0 +1,21 @@
+% !TEX root = ../../main.tex
+
+This evaluation part of the thesis presented an experimental evaluation 
+demonstrating the benefits of our approach.
+
+Our experimental evaluation shows that: 
+local and group caching improve throughput by 1.4× and 1.6× respectively, 
+and response time by 8× and 20×, compared to a classical cloud configuration; 
+performance in offline mode remains the same as online; 
+both the offline/online transition and migration are seamless.
+
+\system{} achieves a similar performance to other collaborative edge systems,
+even with consensus at the peer groups,
+which helps reducing the metadata cost. 
+The forest topology and the ability to synchronise from multiple point of failure
+makes the resynchronization after failure in less than 2secs even with large 
+group of clients.
+
+All the approaches used in our evaluation uses state-based CRDTs,
+an improvement idea can be to make use of Delta-based CRDTs \cite{almeida2015efficient}
+to improve the resynchronisation time.

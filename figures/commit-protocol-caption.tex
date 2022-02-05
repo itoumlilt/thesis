@@ -1,0 +1,27 @@
+\labelevent{txn:init}{0}
+\labelevent{txn:T0}{1}
+\labelevent{txn:T1}{2}
+\labelevent{txn:T0:DC2}{3}
+\labelevent{txn:T1:DC2}{4}
+\labelevent{txn:TA1}{5}
+\labelevent{txn:TA2}{6}
+\labelevent{txn:TA1:DC0}{7}
+\labelevent{txn:TA1:ack}{8}
+\labelevent{txn:T0TA1:DC1}{9}
+\labelevent{txn:T0T1TA1:EdgeB}{10}
+
+
+This system has three data centres DC0, 1, and 2, and edge nodes A and B.  Vector components refer to DC0, 1 and 2 respectively.  Dots are omitted from the figure.  The k-stability objective is 2.
+\begin{description}[leftmargin=!,labelwidth=\widthof{\bfseries \refevent{txn:T0T1TA1:EdgeB}}]
+\item[\refevent{txn:init}] Initially, the DCs observe $x=0$ with version vector $[0,0,0]$.
+\item[\refevent{txn:T0}, \refevent{txn:T1}] Transaction T0 (resp.\ T1) increments $x$ at DC0 (resp.\ DC1), committing $x=1$ with version $[1,0,0]$ (resp.\ $[0,1,0]$).  Both have $k=1$.
+\item[\refevent{txn:T0:DC2}] DC0 transmits T0 to DC2.  Being replicated at two DCs, it is 2-stable ($k=2$).
+\item[\refevent{txn:T1:DC2}] DC1 transmits T1 to DC2.  T1 is now 2-stable. DC2 observes two increments, T0 and T1: now $x=2$ with version $[1,1,0]$, the least-upper-bound of the commit vectors of T0 and T1.
+\item[\refevent{txn:TA1}] EdgeA caches $x$.  Transaction TA1 increments $x$ and commits locally.  Its commit vector remains the symbolic $[\alpha,\beta,\gamma]$.  As TA1 has not been transmitted to a DC, it has $k=0$.
+\item[\refevent{txn:TA2}] Transaction TA2 at EdgeA again increments $x$.  Its snapshot vector is symbolic $[\alpha,\beta,\gamma]$; its commit vector is symbolic $[\alpha',\beta',\gamma']$.  The value of $x$ at EdgeA is now 2.
+\item [\refevent{txn:TA1:DC0}] Concurrently, EdgeA transmits TA1 to DC0.  DC0 assigns commit vector $[\alpha,\beta,\gamma] := [2,0,0]$.  TA1 being known in one DC, it has $k=1$.  DC0 observes two increments, T0 and TA1: now $x=2$, with version $[2,0,0]$.
+\item [\refevent{txn:TA1:ack}] DC0 transmits back the concrete descriptor of TA1, informing   EdgeA that $[\alpha,\beta,\gamma] = [2,0,0]$.  EdgeA observes local increments TA1 and TA2, hence $x=2$.  T0 is not visible to EdgeA because $T0.k=1$.
+\item [\refevent{txn:T0TA1:DC1}] DC0 transmits T0 and TA1 to DC1, making them both 2-stable.
+\item [\refevent{txn:T0T1TA1:EdgeB}] T0, T1 and TA1 being 2-stable at DC1, are made visible to EdgeB, where $x=3$.
+\end{description}
+Eventually (not depicted): TA2 is delivered to a DC, filling in the values for $[\alpha',\beta',\gamma']$; TA2 becomes 2-stable; all four transactions reach all replicas; all replicas observe $x=4$.

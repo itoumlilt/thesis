@@ -1,0 +1,76 @@
+% !TEX root = ../../main.tex
+
+\paragraph{Overview}
+
+\system{}Chat emulates a team collaboration application modeled after the
+Slack and Mattermost communication platforms \cite{slack,mattermost}.
+It consists of approximately 1500 lines of Typescript.
+\system{}Chat represents its three main entities, users, 
+workspaces and bots with the help of CRDT objects.
+%
+In detail, 
+a \textit{user} has a profile, 
+a list of events, 
+a set of friends, 
+and a set of workspaces she is a member of.
+A \textit{workspace} contains the users that collaborate through the application
+ and a set of channels.
+It also maintains the status of the users within the workspace 
+(e.g., owner, ordinary, invited, or deleted).
+A \textit{channel} holds a brief description, and the list of messages
+posted to it.
+%
+A \textit{bot} is a special kind of user.
+It automatically triggers an action when it observes some event, 
+or a specific message on a channel.
+For instance, 
+a bot might monitor activities within a file-system tree, 
+or display weather information.
+Bots play an important role in the benchmark, 
+as they generate a large number of update transactions.
+
+The TCC+ guarantees of \system{} ensure that there are no ordering anomalies in 
+the application.
+For instance, 
+an answer is guaranteed to be visible in a chat after the corresponding question.
+Moreover, 
+transactions are atomic, 
+allowing maintaining invariants such as ``a user is in a workspace if and only 
+if the workspace is in the user's profile.''
+Furthermore, within an SI zone such as a peer group, 
+users observe updates in the same order, 
+greatly simplifying collaboration.
+
+\paragraph{Workload}
+The workload consists of a modified trace from a popular Mattermost
+server.
+The trace contains the actions of around 2,000 users spreads over 3 workspaces; 
+each workspace holds 20 channels on average.
+A user can be in more than one workspace, and one of the workspaces contains 
+1,000 users.
+%
+Around 10\% of the users are bots that act randomly upon receiving a message on 
+the channel, they have subscribed to.
+An action of a user follows a 90/10 read/write ratio.
+A user refreshes its local copy of a channel every 5 transactions.
+%
+The trace follows a Pareto distribution for the action, where 20\% of the users 
+execute 80\% of operations.
+It contains 40 days of activity in total on the Mattermost server and exhibits 
+a diurnal cycle.
+In the experiments, the trace is accelerated to execute in a few minutes only.
+
+For each experiment, 
+we indicate when users are scattered in peer groups, 
+or directly connected to a remote DC.
+%
+The experiments use the second variant of
+the peer group commit protocol, i.e., EPaxos is off the critical path of
+commitment (Section~\ref{sec:group-txn}).
+%
+The current version of our benchmark does not exercise transaction migration 
+(Section~\ref{sec:trans-migr});
+this will be added in future work.
+%
+Each experiment is executed 10 times, 
+and we report the average.

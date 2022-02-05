@@ -1,0 +1,32 @@
+% !TEX root = ../../main.tex
+
+Mobile clients, especially in location-based collaborative applications, 
+like games,
+frequently switch from one peer group to another.
+Our last experiment studies the synchronization time for a client to connect to 
+a group when its cache is invalid.
+This experiment exercises both the cache refreshing mechanism of \system{} and 
+the collaborative cache in a peer group.
+The results are presented in Figure~\ref{fig:plot-sync-time}.
+
+In this figure, 45s after the start of the experiment, a mobile client migrates 
+and joins the peer group.
+The client has a completely invalid chat history.
+She thus needs to synchronize her cache before interacting with the peer group.
+Figure~\ref{fig:plot-sync-time} plots the (average) response time observed by 
+the connecting user (in blue), and the rest of the group (in green).
+As previously, each dot in the plot represents the response time of a transaction.
+In this figure, we can observe that the first transactions of the connecting 
+user have a higher response time (below 12~ms).
+This performance degradation is way lower than the cost of reconnecting to a DC, 
+and fetching data from it (as in Figure~\ref{fig:plot-rt-offline-dc}).
+Moreover, after only a few seconds, it returns to the normal and matches the 
+perceived response time of the group users (in green).
+
+\begin{figure}
+\begin{center}
+    \scalebox{0.7}{\input{./figures/fig-10grp-avg-reconnection-time-client-grp-hit.pgf}}
+\end{center}
+\caption{Synchronizing with a peer group.}
+\label{fig:plot-sync-time}
+\end{figure}

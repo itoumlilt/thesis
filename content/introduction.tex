@@ -1,0 +1,185 @@
+% !TEX root = ../main.tex
+%
+\chapter{Introduction}
+\label{sec:intro}
+
+Internet-scale collaboration is a growing application
+area, as evidenced by games such as Overwatch or Ingress,
+shared editors such as Google Docs, Microsoft Office 365 or Apple
+iWork, or
+file-sharing systems such as Dropbox or Nextcloud.
+
+Mobile devices with Augmented Reality capabilities support
+location-aware games such as Pokémon Go and Harry Potter Unite, or
+collaborative 3D modeling and manufacturing applications
+\cite{wang2019comprehensive, collaborativeARusecase, schafer2021survey}.
+Virtual worlds, or the Metaverses \cite{dionisio20133d}, 
+constitute a subset of collaborative virtual reality applications.
+Metaverses are persistent online computer-generated environments where multiple 
+users in remote and close physical locations can interact in real time for the 
+purpose of work or play.
+Many industries are today building Metaverse applications such as Facebook 
+(Meta) \cite{Connect213:online},
+Microsoft's metaverse work spaces \cite{Microsof66:online} or 
+the NVIDIA Omniverse platform \cite{WhatIsth95:online}, 
+and many more industry companies \cite{dionisio20133d}.
+Those augmented reality worlds generate massive computation for space recognition 
+(e.g., using a smartphone camera to scan relevant objects around the user)
+on the edge devices, and expect real-time collaboration.
+
+Existing systems are cloud-based, sometimes providing ad hoc
+application-level caching.
+Consistency violations are common, baffling users and vexing application
+developers
+\cite{fic:rep:sh172,app:rep:1835,Google-docs-support-offline-issues,Google-docs-offline-issues-complaints,pokemon-go-object-duplication}.
+Support for offline operation is spotty.
+Users interact through the cloud only, even when direct communication
+would be possible.
+These systems lack collaboration features such as group management or
+versioning.
+
+Cloud computing is an established paradigm and most collaborative applications 
+today, 
+including those running on mobile devices, rely on the cloud to exchange data, 
+download information or offload resource-intensive computations to run on more 
+powerful servers and save battery power. 
+Massively multiplayer mobile games are an example of a large-scale collaborative
+application requiring low latency between players and generating 
+resource-intensive computation, 
+especially with the advent of augmented reality,
+which often involves image 
+processing for face recognition or object detection. 
+However, for these applications to be usable, the expected response 
+must be under 5 milliseconds, which is difficult to 
+guarantee when an edge device has to synchronize via remote data centers.
+
+\section{Overview}
+\label{sec:intro:overview}
+
+In the first part of this thesis,
+we explore the edge computing paradigms and the challenges that are
+inherent to its network and architecture.
+Then, we discuss the safety, scalability, security, hierarchy and 
+programmability requirements for collaborative 
+edge applications.
+And finally, we present a comprehensive study of the state of the art,
+and what has been done in the literature to fulfill the edge computing 
+requirements and collaborative applicative requirements. 
+
+In the second part of the thesis,
+we present our main contribution, \system{},
+a database and middleware designed to address these issues.
+A top requirement is an \emph{edge-first} approach \cite{rep:app:1827}
+that locates data on the device, to provide availability, fast and
+seamless response independently of network connectivity and of location,
+and so that users have ownership of their data.
+However, this makes it challenging to satisfy consistency and freshness
+expectations.
+To answer this challenge, \system{} takes a hybrid approach, and
+provides the highest consistency guarantees compatible with availability
+(TCC+), strengthened further (to SI) in well-connected zones.
+CRDT data types ensure convergence without rollbacks.
+A related challenge is the overhead of concurrency metadata
+(fat vector clocks), which we limit thanks to a flexible forest
+topology and to SI zones.
+
+To address the requirements of group collaboration, \system{}
+enables edge collaborators to share data without relying on the cloud,
+and supports collaborative security features, including end-to-end
+encryption.
+Our design provides uniform access to data across a spectrum spanning
+core cloud to the far edge.
+
+Finally, this thesis addresses a number of design and implementation
+challenges, including disconnected operation, consistency under
+migration, total-order consensus at the edge, and avoiding single points of
+failure despite the tree topology.
+
+\section{Contributions}
+\label{sec:intro:contributions}
+
+The main results of this dissertation are as follows:
+\begin{itemize}[leftmargin=*]
+\item
+  A decentralized database architecture, designed for collaborative
+  applications, that provides a continuum spanning from the core cloud
+  to the far edge.
+\item
+  A hybrid consistency model, based on causal and transactional 
+  guarantees globally, strengthened to total-order consistency in edge
+  collaboration groups and in geographical proximity.
+\item
+  A scalable metadata and topology design that bounds the overhead of 
+  the required consistency metadata, and that supports seamless
+  disconnection or migration of a node or of a whole group.
+\item
+  A novel approach to access control that leverages the consistency
+  model.
+\item
+  Efficient design and implementation of \system{} and
+  its experimental evaluation demonstrating the benefits of
+  our approach.
+\end{itemize}
+
+Our experimental evaluation shows that:
+local and group caching improve throughput by 1.4$\times$ and
+1.6$\times$ respectively, and response time by 8$\times$ and 20$\times$,
+compared to a classical cloud configuration;
+performance in offline mode remains the same as online;
+both the offline{\slash}online transition and migration are seamless.
+
+\section{Publications}
+\label{sec:intro:publications}
+
+Some of the results presented in this thesis have been published as follows:
+
+\begin{itemize}
+  \item Ilyas Toumlilt, Pierre Sutra, Marc Shapiro. Highly-Available and Consistent Group Collaboration at the Edge with Colony. Middleware 2021 - 22nd International Middleware Conference, Dec 2021, Québec / Virtual, Canada. ⟨10.1145/3464298.3493405⟩. ⟨hal-03353663v3⟩ \cite{toumlilt:hal-03353663}
+  \item Ilyas Toumlilt, Alejandro Tomsic, Marc Shapiro. Vers une cohérence causale évolutive sans chaînes de
+  ralentissements. Compas 2018: Conférence d'informatique en Parallélisme, Architecture et Système,
+  Jun 2018, Nice Sophia-Antipolis, France. ffhal-01860334f \cite{toumlilt:hal-01860334}
+\end{itemize}
+
+During my thesis, I explored other directions and collaborated in several projects that have helped me to get insights on the challenges of providing consistency in geo-replicated and edge systems. These efforts have led me to contribute to the following publications and deliverables:
+
+\begin{itemize}
+  \item Ali Shoker, Paulo Sergio Almeida, Carlos Baquero, et al. LightKone Reference Architecture (LiRA). https://www.info.ucl.ac.be/~pvr/LiRAv0.9.pdf. 2020 (cit. on p. 3). \cite{LiRAv09p46:online}
+  \item LightKone H2020 Project. D6.1: New concepts for heavy edge computing. 2018 (cit. on p. 4) \cite{D61Newco32:online}
+  \item LightKone H2020 Project. D6.2: New concepts for heavy edge computing. 2019. \cite{D62Newco60:online}
+\end{itemize}
+
+\section{Organization}
+\label{sec:intro:organisation}
+
+This thesis is divided into three parts. 
+The rest of this document is organized as follows:
+\begin{itemize}
+  \item Part~\ref{part:background} introduces the common background of our work,
+  formulate the problem, presents the existing solutions and discusses the use-case
+  requirements, this part is divided into three chapters:
+  \begin{itemize}
+    \item Chapter~\ref{ch:edge-computing} provides a complete and up-to-date 
+    review of edge-oriented computing systems by aggregating relevant challenges 
+    on their architecture features, management approaches, and design goals.
+    \item Chapter~\ref{ch:requirements} presents a use-case point of view of the
+    previous review, discussing the safety, scalability, security, hierarchy and 
+    programmability requirements that need to be guaranteed for collaborative 
+    edge applications.
+    \item Chapter~\ref{ch:related-work} studies and compares the solutions that have
+    been designed in the state of the art of edge storage systems
+    to answer both challenges and requirements presented before,
+    and discusses the remaining challenges that need to be addressed.
+  \end{itemize}
+  \item Part~\ref{part:contributions}, in light of what we saw in the existing work, 
+  we will here justify some protocol choices used in our approach, 
+  which aims to reduce shortcomings observed in some existing systems.
+  And present the design, implementation and the programming model of our
+  main contribution, \system{}, a database and middleware designed to address
+  requirements of group collaboration.
+  \item Part~\ref{part:evaluation} provides an experimental evaluation 
+  demonstrating the benefits of our approach, compared to other solutions 
+  from the state of the art.
+  \item the last part~\ref{part:conclusion} we summarize our contribution, and 
+  present our vision for the future requirements towards more reliable,
+  scalable and secure collaborative edge storage systems.
+\end{itemize}

@@ -1,0 +1,57 @@
+% !TEX root = ../my-thesis.tex
+%
+% ------------------------------------  --> cover title page
+
+\newcommand{\jurymember}[5]{\hspace{1.5em}\textbf{{#1} \textsc{{#2}}}, {#3}, {#4} \hfill \textit{{#5}}\\}
+
+\newgeometry{left=2.8cm, right=2.5cm, top=2cm, bottom=2cm}
+\begin{titlepage}
+	\pdfbookmark[0]{Cover}{Cover}
+	\begin{flushleft}
+      \includegraphics[height=1.7cm]{figures/sorbonne.pdf}
+      \hfill
+      \includegraphics[height=1.7cm]{figures/LogoLIP6.pdf}
+      \hfill
+      \includegraphics[height=1.7cm]{figures/inria.pdf}
+	\end{flushleft}
+	\vfill
+	\begin{center}
+        \vspace{1em}
+        {\large Thèse présentée pour l'obtention du grade de}\\
+        \vspace{1em}
+        {\LARGE DOCTEUR de SORBONNE UNIVERSITÉ}\\
+        \vspace{2em}
+		{\small Spécialité}\\
+		\vspace{0.5em}
+		{\Large Ingénierie / Systèmes Informatiques}\\
+		\vspace{2em}
+        {\large École doctorale}\\
+		\vspace{0.5em}
+		{\Large Informatique, Télécommunication et Électronique Paris (ED130)}\\
+    \end{center}
+	\vfill
+	\begin{flushright}
+	\hfill
+	\vfill
+	{\LARGE\thesisTitle \par}
+	\rule[5pt]{\textwidth}{.4pt} \par
+	{\Large\thesisName}
+	\vfill
+	\end{flushright}
+	%% If final version:
+	Soutenue publiquement le : \textit{\large\thesisDate}
+	%% Else, for review version:
+	% Version: \thesisVersion
+	\begin{flushleft}
+		Devant un jury composé de :\\
+		\jurymember{Sebastien}{Monnet}{Professeur}{Université Savoie Mont Blanc}{Rapporteur}
+		\jurymember{Etienne}{Rivière}{Professeur}{UCLouvain}{Rapporteur}
+		\jurymember{Sonia}{Ben Mokhtar}{Directrice de Recherche}{LIRIS, CNRS}{Examinatrice}
+		\jurymember{Annette}{Bieniusa}{Maîtresse de Conférences}{University of Kaiserslautern}{Examinatrice}
+		\jurymember{Valerie}{Issarny}{Directrice de Recherche}{Inria}{Examinatrice}
+		\jurymember{Pierre}{Sutra}{Maître de conférences}{Télécom SudParis}{Invité}
+		\jurymember{Marek}{Zawirski}{Software Engineer}{Google}{Invité}
+		\jurymember{Marc}{Shapiro}{Directeur de Recherche}{Sorbonne Université, LIP6, Inria}{Directeur de thèse}
+	\end{flushleft}
+\end{titlepage}
+\restoregeometry

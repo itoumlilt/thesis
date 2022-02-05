@@ -1,0 +1,31 @@
+% !TEX root = ../../main.tex
+
+We deploy each \system{} component (edge client, cloud server, peer group, etc.)
+as a Docker container, on a set of dedicated servers in a cluster.
+Each server has two Intel Xeon Gold CPUs, each with 16~cores per CPU,
+128\,GB of memory, and 2~TB of (spinning) hard disk.
+Nodes are all connected through 10\,Gb/s network switches.
+A monitoring server, deployed on a separate container, captures the performance 
+metrics.
+
+We measure an average 0.15\,ms network latency within the cluster.
+
+We use the Linux traffic shapping tool (\texttt{tc}) to simulate larger network 
+latency, with a mean of
+50\,ms for mobile cellular data and 10\,ms for carrier Ethernet.
+DCs are connected in a mesh using RabbitMQ sockets above TCP;
+peer groups are connected using WebRTC.
+
+The performance evaluation in this chapter is performed using the \system{}Chat 
+Benchmark application presented in Chapter~\ref{ch:eval:benchmark-app},
+as this scenario has the largest set of collaborative transactions on 
+shared data and objects between users.
+
+To compare performance, we first evaluated the performance of \system{} compared
+to classical cloud and single client caching (without peer-to-peer groups), 
+to demonstrate the benefits of our approach; we then ported the \system{}Chat
+application on top of representative platforms for web-based data synchronization:
+Yjs \cite{yjsyjsSh56:online} 
+(a widely used open source technology, with 5.5k Github stars) 
+and Automerge \cite{kleppmann2018automerge},
+both are using state-based CRDTs, Automerge being the JSON based implementation.

@@ -1,0 +1,166 @@
+% !TEX root = ../../main.tex
+
+The \system{} middleware is designed to provide a simple API for developing and deploying collaborative applications.
+This section presents its implementation and programming interface.
+The code is open-source and available on GitHub.%
+
+
+\section{Modular design}
+\label{sec:modular-design}
+
+\system{} enjoys a modular design, where each component (DC,
+PoP, Client, API) can be deployed and run independently.
+
+Server components are implemented in Erlang/OTP, a functional language
+built for distribution and concurrency. We provide Docker containers
+for each server module.
+
+The client component has two versions: a lightweight Typescript
+library for web applications, and an Erlang module that can run on the
+edge device, serving multiple applications through a language-agnostic
+Protocol Buffer interface.
+
+\section{API and programming model}
+  
+An application node connects to a session manager (currently implemented
+in  the core cloud), which authenticates the node.
+With the session opened, the node may join a collaboration or peer group,
+and run transactions accessing database objects.
+The node is notified of group change events (e.g., a new peer joins).
+
+The database stores CRDT objects, such as counters, registers, sets,
+maps, or sequence datatypes.
+
+\system{} can also support custom data types, but details are omitted.
+
+An object is stored in a namespace called a bucket.
+Opening a bucket caches it in the node; optional parameters can specify
+cache policies (e.g., LRU, writeback, etc.).
+The application can subscribe to an object's update events, in order to
+implement reactive programming patterns.
+A transaction is atomic (all-or-nothing) against multiple updates, and
+reads a  TCC+-consistent snapshot of its opened buckets.
+\system{} supports both interactive and batch transactions.
+
+\begin{figure}[th]
+  \lstinputlisting[style=typescript,linerange={8-25}, xleftmargin=3em]{docs/typescript/src/api.ts}
+  \caption{
+    \labfigure{api}
+    An example of \system{} program.
+  }
+\end{figure}
+
+The TypeScript example in \reffigure{api} illustrates the API.
+This application opens a session (Line~1).
+Then, it creates and increments a CRDT counter object (Lines~2--5).
+Then it connects to a peer group (line~7), and updates the grow-only map
+(gmap) \code{{\color{RoyalPurple}{``myMap''}}} in a transaction
+(lines~8--12).
+This map contains references to a register object (key
+\code{{\color{RoyalPurple}{``a''}}}) and a set object (key
+\code{{\color{RoyalPurple}{``e''}}}).
+The counter update and the commit are both asynchronous 
+(Lines~9 and~13), returning a promise.
+At line~13, the client waits for the promise, and displays the content
+of the set.
+
+\section{Communication protocol}
+
+Edge nodes communicate over WebRTC\@.
+Opening a client session occurs in the signaling phase of WebRTC and
+currently relies on a server in the core cloud, to simplify
+authentication and trust management.
+The session provides the networking information required to communicate
+with the system, i.e.,
+\begin{inparablank}
+  \item the IP addresses and ports  of nearby peers, and
+  \item the keys required to establish secure point-to-point connections
+    with them.
+\end{inparablank}%
+\footnote{
+%
+  The first connection is established via STUN.
+  If this fails (due to a firewall or NAT), \system{} falls back to
+  using TURN \cite{wing2008session}.
+}
+To migrate to a different peer group, the node relies again on the
+session server.
+
+
+\section{Storage}
+\label{sec:object-store}
+
+Cloud nodes (DCs and PoPs) have secondary storage and persist their data
+to it.
+They also cache data in memory for performance.
+Data in a DC is sharded by consistent hashing across multiple server
+machines, leveraging \texttt{riak\_core} \cite{riak-core}.
+
+We do not assume that a far-edge node has disk, and store their data in
+browser memory.
+When a disconnected client reconnects again, it repopulates its cache,
+either from its peer group's content-sharing network, or from its
+connected DC\@.
+
+\section{Security}
+
+The authentication keys received from the session server serve to
+encrypt communication between nodes, using symmetric encryption.
+This ensures that only authenticated clients are able to observe and
+update objects.
+Decentralised authentification \cite{sec:rep:1823} is left for future
+work.
+
+A system administrator can set a security policy with the help of access-control lists (ACLs).
+An ACL is a tuple from the set $\mathsf{objects} \times \mathsf{users} \times \mathsf{permissions}$.
+It defines that a given user is granted access to some object and the operation she is allowed to execute on that object.
+Right inheritance (RI) is modelled using two forests, atop $\mathsf{objects}$ and $\mathsf{users}$.
+%
+If user $u$ inherits from user $v$, then $u$ holds the same ACL as $v$.
+Similarly, if an object $x$ inherits from some object $y$, then any ACL granted on $y$ also holds for $x$.
+Checking an ACL evaluates a first-order logic predicate over the RI and ACL relations following the above logic.
+For instance,
+\begin{inparaitem}
+\item[(C1)] $(\mathsf{book}, \mathsf{Alice}, \mathsf{own}) \in ACL$, or the more complex\\
+\item[(C2)] $(\mathsf{book}, \mathsf{shelf}) \in RI \land (\mathsf{shelf}, \mathsf{Bob}, \mathsf{read}) \in ACL$
+\end{inparaitem}
+specify respectively that $\mathsf{Alice}$ owns a $\mathsf{book}$ and that this book is on a $\mathsf{shelf}$ readable by $\mathsf{Bob}$.
+
+An ACL check must respect the order in which clients modify both data
+and the security policy, to avoid unexpected behavior.
+More precisely, the system must ensure \cite{sec:rep:1842} that:
+\begin{inparaenum}[\textit (i)]
+\item
+  ACLs are applied in the order they were issued, and
+\item
+  ACL checks are evaluated on a fresh copy of data and metadata.
+\end{inparaenum}
+If data and security metadata are mutually consistent according to
+\tccp, the first constraint is trivially satisfied.
+
+Formalizing the second one, if $x$ and $y$ are related by some ACL
+check, and if $ux$ occurs in real time before $vy$, then every
+transaction that reads $vy$ must access at least version $ux$. This is
+a form of external consistency, and is therefore not available under
+partition \cite{rep:pan:1628}.
+
+Let us use an example to illustrate the problem with the second
+constraint.
+Consider predicate C2, and assume that Alice, Bob and Carl share the
+bookshelf.
+Suppose Alice removes a book from the shelf on  her node, while
+Bob makes the shelf readable by everyone.
+The two are concurrent from the causality perspective, and thus Carl may
+observe them in any order.
+However, by the second constraint, if Bob's update occurs later in real
+time, then Carl must never see Alice's book on the shelf.
+If Bob's node is disconnected or slow to transmit, this requirement is
+violated.
+
+\system{} alleviates this problem as follows.
+First, object versions are visible according to the local copy of the
+$ACL$ and $RI$ relations.
+Second, it defers ACL checks to after commit.
+A committed transaction that fails an ACL check is not visible.
+In the above example, Alice's book may appear briefly on Carl's node;
+but as soon as Bob's update is delivered, it will disappear.

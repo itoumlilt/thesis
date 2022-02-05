@@ -1,0 +1,37 @@
+% !TEX root = ../../main.tex
+% \chapter{Contributions}
+% \label{ch:contrib}
+
+In this chapter, we present the design, algorithms and architecture of \system{},
+a group collaborative database that addresses the challenges of edge replication.
+It efficiently ensures causally consistent, available, and convergent access to
+high number of client replicas, tolerating failures.
+\system{} allows the development of collaborative applications with seamless support for replication at the client machine leveraging peer-to-peer interactions to propagate operations among clients.
+
+We first describe an abstract design that addresses the challenges of client-side replication, starting with the no-failure case, and then, how we support DC failure. Our design demonstrates how to apply the principles of causally consistent algorithms for full-replication systems to build cloud-based support for partial client replication.
+To avoid the complexity of consistent client-side, device-wide partial replication on the client side, we leverage full DC replicas to provide a consistent view of the database to the client. The client merges this view with its own updates. To tolerate DC failures, we explore a trade-off between data liveliness and freshness, and serve clients a slightly delayed, but consistent and sufficiently replicated version.
+
+Then, we describe how \system{} clients can synchronize directly among each other, using a peer-to-peer interaction model. To support these interactions, geographically close clients form overlay networks to propagate objects and updates among them. Which induces low latency for propagating updates and objects between the nearby clients. However, while leveraging direct client interactions brings significant benefits, it also creates security challenges. We address these challenges by making it impossible for an unauthorized client to access objects or interfere with operations issued by authorized clients. Our design uses lightweight cryptography and benefits from access control mechanism of the cloud to securely distribute keys among clients.
+
+We then discuss and justify our design and specify our consistency choices, where we take a hybrid approach, providing the highest consistency guarantees compatible with availability and convergence (TCC+), strengthened further (to SI) in proximity connected zones. A related challenge is the overhead of concurrency metadata (fat vector clocks), which we limit thanks to a flexible forest topology and to SI zones.
+
+Finally, this section addresses a number of design challenges, including disconnected operations, consistency under client and groups migration, total-order consensus at the edge, transaction migration, and avoiding single points of failure despite the tree topology.
+
+Our approach has been implemented as a software named \system{} \cite{IlyasTou91:online} and
+published at the ACM Middleware Conference 2021 \cite{toumlilt:hal-03353663}.
+
+\chapter{Protocol design}
+\label{ch:protocol-design}
+\input{protocol-design}
+
+\chapter{Data Management}
+\label{ch:data-management}
+\input{data-management}
+
+\chapter{Groups}
+\label{ch:groups}
+\input{groups}
+
+\chapter{System API and Implementation}
+\label{ch:implementation}
+\input{implementation}

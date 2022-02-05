@@ -1,0 +1,125 @@
+% !TEX root = ../../main.tex
+
+We have previously seen the challenges of transformation learning.
+We will now study the state of the art for learning transformations from
+a set of examples.
+We will mainly focus on fully automatic approaches learning API usage updates
+from examples, and assess the strengths and weaknesses of these approaches
+in terms of the taxonomy challenges we introduced earlier.
+We will also see more distant related work, with semi-automatic approaches
+and approaches learning transformations other than API usage updates.
+
+
+\section{TBD}
+
+Much previous work on data in edge computing 
+\cite{app:rep:1826, syn:optim:rep:1433, rep:1844}
+focuses on streaming and content delivery.
+
+Examples include sensor systems or propagating database views.
+We leverage this previous work by propagating shared state as a
+stream of update events.
+
+The distributed sharing of persistent mutable state raises extra
+challenges, which we address in this paper.
+
+Achieving low response time is an ongoing challenge for many web applications
+\cite{akamai:2010:press, kohavi2007online, leighton2009improving}.
+For example, on amazon.com, a delay of 100 ms costs in average 1\% of
+sales \cite{kohavi2007online}.
+In order to deliver fast response and offline support, a number of web
+applications cache data at the client side, e.g., in the browser.
+See for instance Facebook's News Feed \cite{facebook:newsfeed}, or the
+Chrome browser extension that enables Google Docs and Google Maps to be
+used offline \cite{googledocs:offline}.
+Several earlier systems manage data for clients that are connected only
+intermittently \cite{optim:rep:syn:1500,rep:syn:app:1728}.
+Bayou \cite{syn:optim:rep:1433} supports data replicas in
+mobile computers.
+Cimbiosys \cite{app:rep:1826} uses a decentralised model to support
+Internet Services.
+Rover \cite{rep:1844} and Coda \cite{fic:rep:887} are general-purpose
+systems that support disconnected operation, under a weak consistency
+model.
+
+
+Cloud Types \cite{syn:app:1761} support a programming
+model for shared cloud data, similar to CRDTs with total order.
+It supports multiple replicas of data, synchronised periodically.
+Parse \cite{syn:app:1761} is similar, under a weaker eventual consistency
+model.
+
+% CC, CC+ and TCC+
+Strengthening causal consistency with strong convergence was proposed by
+COPS under the name Causal Plus Consistency (CC+) \cite{rep:syn:1662}.
+ChainReaction augments CC+ with transactional reads, implemented with
+the help of a sequencer per DC.
+To execute a write, ChainReaction requires that the prior versions read at the client are stable in the DC.
+%
+TCC+ \cite{rep:pro:sh182} extends the guarantees of CC+ to transactions.
+This model is closely related to others, such as Parallel Snapshot
+Isolation (PSI) proposed by the Walter system \cite{rep:syn:1661}.
+TCC+ is the strongest model compatible with availability under partition.
+%It does order concurrent transactions, but only requires convergence.
+\system{} guarantees TCC+ globally; in zones with good connectivity,
+it enforces an SI zone to
+improve metadata overhead and user experience.
+Whereas TCC+ supports concurrent updates and arbitrary CRDT types, PSI
+restricts concurrency to a single data type (the cset).
+Its SI zones, the DCs, are fixed in advance.
+Walter runs two-phase commit across data centres; this ensures global
+transactions are strongly consistent, but negatively impacts liveness
+and performance.
+
+% hybrid consistency models
+A hybrid consistency model makes different consistency guarantees for
+different operations.
+For instance, in Lazy Replication, operations are causally consistent by
+default, but can optionally request linearisability \cite{pan:rep:1146}.
+References
+\citealp{alg:rep:syn:optim:1464,rep:syn:sh167} or \citealp{rep:syn:1690}
+are other examples.
+%
+Unistore \cite{unistore} supports both causal and linearisable
+transactions over a geo-replicated key-value store.
+To ensure fault tolerance, Unistore requires that, before a linearisable
+transaction commits, all of its causal dependencies be stable.
+%
+\citet{fisheye} propose a proximity-based hybrid model, called Fisheye
+Consistency, such that nodes that are close in a ``proximity graph''
+mutually observe strongly-consistent transactions, whereas consistency
+is weak between far-away nodes.
+
+Depot \cite{rep:1712} and PRACTI \cite{rep:syn:1729} pioneered
+highly available caching at the edge, under causal consistency.
+Their approach uses vector clocks with one entry per replica, which severely
+limits scalability.
+Depot targets Byzantine fault tolerance, the most general class of
+faults, but not transactions.
+Simba \cite{fic:syn:1731} enables the edge application to select among a
+specific level of consistency (eventual, causal or serialisable).
+PouchDB \cite{pouchDB} is a client-side cache that replicates data
+from a CouchDB server; it supports offline operation and detects
+conflicts, but does not merge them.
+
+SwiftCloud \cite{rep:pan:sh177} introduces bounded-size
+vectors and migration.
+Legion \cite{app:rep:syn:1775} is a web framework that extends applications
+with peer-to-peer interaction using CRDTs.
+\system{} is inspired by the above designs; additionally, \system{}
+supports collaboration groups and peer groups, and ensures that
+migration is seamless.
+
+\section{Conclusion}
+In this chapter we first analyzed existing approaches for automatically learning
+API-usage updates from examples and then studied other related approaches in the domain,
+which were either learning semi-automatically, or learned different kinds of transformations.
+
+When we discussed the methods used by automatic approaches to infer
+API usage updates, we identified for each approach its inference
+capabilities in terms of the taxonomy.
+We found that only a few approaches can infer transformations from
+examples containing noise or transformations with multiple variants,
+and only one can infer transformations relying on control-flow dependencies.
+In order to handle Linux kernel API usage updates, we need to design an approach
+that specifically targets these challenges.

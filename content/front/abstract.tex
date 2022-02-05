@@ -1,0 +1,28 @@
+% !TEX root = ../main.tex
+%
+\pdfbookmark[0]{Abstract}{Abstract}
+\addchap*{Abstract}
+\label{chap:abstract}
+
+\vspace*{8mm}
+Immediate response, autonomy and availability is brought to edge
+applications, such as gaming, cooperative engineering, or in-the-field
+information sharing, by distributing and replicating data at the edge.
+However, application developers and users demand the highest
+possible consistency guarantees, and specific support for group
+collaboration.
+To address this challenge, \system{} guarantees Transactional Causal
+Plus Consistency (TCC+) globally, dovetailing with Snapshot Isolation
+within edge groups.
+To help with scalability, fault tolerance and security,
+its logical communication topology is tree-like, with replicated roots
+in the core cloud, but with the flexibility to migrate a node or a group.
+Despite this hybrid approach, applications enjoy the same semantics
+everywhere in the topology.
+Our experiments show that local caching and peer groups improve
+throughput and response time significantly, performance is not affected
+in offline mode, and that migration is seamless.
+
+\textbf{Keywords:} 
+Causal Consistency, Collaborative Computing, Edge Computing, Geo-Replication,
+Peer-to-Peer Systems

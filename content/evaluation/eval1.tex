@@ -1,0 +1,51 @@
+% !TEX root = ../../main.tex
+
+\begin{figure}
+    \begin{center}
+        \scalebox{0.7}{\input{./figures/fig-1ea-tp-lat-10-miss.pgf}}
+    \end{center}
+    \caption{Performance of \system.}
+    \label{fig:plot-performance}
+\end{figure}
+
+In this first experiment, we evaluate system performance when scaling
+up, increasing the number of clients until performance saturates.
+We compare three approaches.
+One emulates AntidoteDB \cite{antidote-website}, a classical geo-replicated
+approach, where a client does not have a local cache, and must contact
+the DC for each operation.
+Another emulates SwiftCloud \cite{rep:pan:sh177}, where
+clients have a local cache but do not form peer groups.
+Finally, the \system{} label indicates a system with peer groups
+enabled.
+In each case, we evaluate a deployment with a single DC and one with
+three DCs.
+
+Figure~\ref{fig:plot-performance} reports throughput vs.~response time.
+It uses a log-log scale; down and to the right is better.
+Load doubles from one point to the next, from 4 to 1024 clients.
+As expected, at the beginning of the curve, throughput improves and
+response time remains stable.
+At some point, throughput levels out and response time degrades,
+indicating saturation.
+
+Observe that the \system{}'s response time is approximately 5 times
+better than Swiftcloud's, which itself performs one order of magnitude
+better than AntidoteDB (both for throughput and response time).
+%
+This difference is explained by the caching policy.
+AntidoteDB does not have a client-side cache.
+In the SwiftCloud configuration, 90\% of transactions hit the local
+cache.
+The hit rate reaches 95\% in the shared cache of the \system{} peer group
+configuration.
+
+Adding more DCs spreads the load in the AntidoteDB configuration,
+improving the maximum throughput of the system, by 40\% from a single to
+three DCs.
+However, adding more data centers does not improve response time, 
+since clients need still to contact them for each operation.
+This is \speedup{8} slower than the SwiftCloud configuration.
+%
+In contrast, the number of DCs has a minor impact in the SwiftCloud and
+\system{} configurations.

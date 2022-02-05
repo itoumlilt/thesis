@@ -1,0 +1,60 @@
+% !TEX root = ../main.tex
+%
+% \chapter{Conclusion}
+% \label{ch:conclusion}
+
+Many web applications are built around direct interactions among users, 
+from collaborative applications and social networks to multiuser games. 
+Despite being user-centric, 
+these applications are usually supported by services running on servers that 
+mediate all interactions among clients. 
+When users are in close vicinity of each other, 
+relying on a centralized infrastructure for mediating user interactions 
+leads to unnecessarily high latency while hampering fault-tolerance and scalability.
+
+This thesis first explored the edge computing paradigms and the challenges 
+that are inherent to its network and architecture.
+Then, we presented the safety, scalability, security, hierarchy and programmability
+requirements for todays collaborative edge applications.
+We also explored the solutions from the state of the art.
+
+In the second part of the thesis, 
+we presented the design of \system{}, a system that brings
+geo-replication guarantees to the Edge.
+\system{} allows applications to run transactions in the client machine,
+for common operations that access a limited set of objects, with
+immediate, consistent and offline response, or in the DC, for
+transactions that require accessing a large number of objects.
+\system{} also proposes a client-assisted failover mechanism that trades
+response time by a small increase in staleness.
+
+\section{Limitations and perspectives}
+
+Several aspects remain open for improvements and investigation.
+
+\paragraph{Better caching heuristics} 
+the current design caches at the client side the least recently used versions
+of clients objects.
+We would like to take into account the interest set of the application,
+and have more level of LRU caches,
+to avoid evicting objects that are actively used by the application
+while loading temporary objects.
+
+\paragraph{Support for transaction migration}
+Client computation resources can be poor and limited, although
+being resource-friendly and metadata lightweight, in \system{}, some heavy operation can
+be done faster using the Datacenter ressources. 
+We have explored a hybrid model where we
+can move computation from the client to the server in the heavy jobs case. This raises
+some interesting challenges like preserving the causal state of the client, handling updates
+and scheduling operations.
+
+\paragraph{Data and Point-of-Presence placement}
+Placing clients at different levels of the hierarchy, in particular in
+Content Delivery Network points of presence, might improve perceived
+response time even more.
+In addition to prefetching heuristics and better caching at the 
+Point-of-Presence level.
+
+Extending the peer-to-peer communications across edge services would also make 
+the system less dependent on the cloud for updates dissemination.
